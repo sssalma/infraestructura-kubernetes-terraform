@@ -1,0 +1,19 @@
+services:
+  nginx:
+    image: sssalma/nginx-gsx:v1
+    ports:
+      - "80:80"
+    depends_on:
+      - simple-app
+    restart: always
+
+  simple-app:
+    image: sssalma/simple-app:v1
+    ports:
+      - "3000:3000"
+    restart: always
+    volumes:
+      - app-data:/app/data
+
+volumes:
+  app-data:
