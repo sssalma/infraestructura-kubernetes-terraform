@@ -4,16 +4,73 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - simple-app
+      simple-app:
+        condition: service_healthy
     restart: always
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   simple-app:
-    image: sssalma/simple-app:v1
+    image: sssalma/simple-app-gsx:v1
     ports:
       - "3000:3000"
     restart: always
+    networks:
+      - frontend
+      - backend
+    environment:
+      - APP_ENV=${APP_ENV:-development}
+      - PORT=${PORT:-3000}
     volumes:
       - app-data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Servicio opcional: base de datos ligera para persistencia
+  redis:
+    image: redis:7-alpine
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
 
 volumes:
   app-data:
+  redis-data:
