@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-app
+  labels:
+    app: simple-app
+spec:
+  # ClusterIP: solo accesible desde dentro del cluster
+  # nginx puede alcanzar simple-app en http://simple-app:3000
+  type: ClusterIP
+  selector:
+    app: simple-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
