@@ -1,0 +1,59 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Build and push Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push nginx image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./week_8
+          push: true
+          tags: |
+            nafaaissa/nginx-gsx:latest
+            nafaaissa/nginx-gsx:${{ github.sha }}
+
+      - name: Build and push simple-app image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./week_8/simple-app
+          push: true
+          tags: |
+            nafaaissa/simple-app-gsx:latest
+            nafaaissa/simple-app-gsx:${{ github.sha }}
+
+  validate-terraform:
+    name: Validate Terraform configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init -backend=false
+
+      - name: Terraform Format Check
+        run: terraform -chdir=terraform fmt -check
+
+      - name: Terraform Validate
+        run: terraform -chdir=terraform validate
