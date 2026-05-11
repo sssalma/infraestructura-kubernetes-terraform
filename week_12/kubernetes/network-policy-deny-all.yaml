@@ -1,0 +1,12 @@
+# Política por defecto: denegar todo el tráfico entrante y saliente
+# Se aplica a todos los pods del namespace por defecto
+# Principio de menor privilegio: si no está explícitamente permitido, está bloqueado
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
