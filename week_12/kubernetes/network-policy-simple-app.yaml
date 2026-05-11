@@ -1,0 +1,19 @@
+# Permite tráfico entrante a simple-app solo desde nginx
+# Egress bloqueado - simple-app no necesita salir a ningún sitio
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-simple-app
+spec:
+  podSelector:
+    matchLabels:
+      app: simple-app
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: nginx
+      ports:
+        - port: 3000
