@@ -49,13 +49,7 @@ kubectl exec -it $NGINX_POD -- curl http://simple-app:3000
 **Problem:** `localhost:30080` no funciona  
 **Fix:**
 ```powershell
-# ✅ RECOMENDADO
 minikube service nginx
-
-# O
-kubectl port-forward service/nginx 30080:80
-# Luego en otra terminal:
-Invoke-WebRequest -Uri http://localhost:30080
 ```
 
 ---
