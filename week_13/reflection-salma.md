@@ -1,0 +1,11 @@
+La verdad es que esta práctica me ha enseñado bastante, aunque no siempre de la forma más cómoda. Hay semanas que fluían bien y otras que te quedas atascada en algo tonto durante horas y al final resulta que era un typo en un yaml.
+
+Lo que más me ha costado entender ha sido Terraform. No tanto la sintaxis en sí sino el concepto de que estás describiendo lo que quieres que exista y Terraform se encarga de hacerlo realidad. Al principio intentaba pensar en pasos, como "primero crea esto, luego aquello", y no funciona así. Cuando lo entendí fue cuando hice el destroy y el apply seguidos y vi que recreaba exactamente lo mismo sin que yo tuviera que hacer nada más. Ahí sí que lo pillé.
+
+Con Docker me pasó lo contrario, fue lo que antes entendí. Tiene sentido desde el principio, empaquetas la app con todo lo que necesita y ya no hay el problema de "en mi máquina funciona". La parte de optimizar las capas del Dockerfile, copiar el requirements.txt antes que el código para aprovechar la caché, esas cosas las encontré bastante interesantes aunque al principio no les veía la utilidad.
+
+Lo que más me ha sorprendido es la cantidad de cosas que hay que tener en cuenta solo para que dos contenedores se hablen entre sí de forma segura. Redes, políticas, servicios, puertos... en Compose ya había algo de esto pero en Kubernetes se multiplica. La semana de redes fue donde más me paré a pensar, porque no era solo seguir pasos sino entender por qué segmentas, qué pasa si no lo haces, qué es lo mínimo que deberías permitir.
+
+Si empezara de nuevo creo que leería más antes de ponerme a hacer. Muchas veces me lanzaba a escribir manifests o configuraciones sin tener claro del todo qué estaba haciendo y luego tocaba rehacer. Tampoco dejaba notas de por qué había hecho las cosas de una forma concreta y al llegar a la documentación final no recordaba bien el razonamiento.
+
+Me quedo con que ahora entiendo bastante mejor cómo está montada la infraestructura de una empresa real, o al menos tengo una idea más concreta de por dónde va. Antes era todo muy abstracto.
