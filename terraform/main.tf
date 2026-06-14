@@ -144,7 +144,7 @@ resource "kubernetes_deployment" "simple_app" {
       spec {
         container {
           name  = "simple-app"
-          image = "${var.dockerhub_user}/simple-app:${var.image_tag}"
+          image = "${var.dockerhub_user}/simple-app-gsx:${var.image_tag}"
 
           port {
             container_port = 3000

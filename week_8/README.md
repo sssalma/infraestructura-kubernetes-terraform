@@ -29,27 +29,14 @@ week_8/
 
 Se usa `nginx:latest` como base, tal como indica el enunciado. Nginx es un
 servidor web ligero y ampliamente usado en producción, adecuado para servir
-contenido estático como nuestra página de GreenDevCorp.
+contenido estático y como proxy reverso hacia nuestra app Flask.
 
-### Construcción y ejecución
+### Proxy reverso
+
+Nginx reenvía `/visits` a `simple-app:3000`, conectando web y app.
 
 ```bash
-# Construir la imagen
 docker build -t nginx-gsx .
-
-# Ejecutar localmente
-docker run -p 80:80 nginx-gsx
-
-# Verificar
-curl localhost
-```
-
-### Verificación
-
-`curl localhost` devuelve la página de bienvenida de GreenDevCorp:
-
-```
-Bienvenido a GreenDevCorp - Practica 2
 ```
 
 ---
@@ -65,10 +52,14 @@ Se usa `python:3.12-alpine` en lugar de `python:3.12` completo por dos razones:
 
 ### Aplicación
 
-`app.py` es un servidor HTTP mínimo con dos endpoints:
+| Endpoint | Respuesta |
+|----------|-----------|
+| `GET /` | `Hello from container!` |
+| `GET /health` | `{"status": "ok"}` |
+| `GET /visits` | `Visitas: N` (contador en memoria) |
 
-- `GET /` → devuelve `Hello from container!`
-- `GET /health` → devuelve `{"status": "ok"}` (útil para health checks en semanas posteriores)
+El contador de `/visits` se pierde al reiniciar el contenedor. En Week 9
+se reemplazará con Redis para que sea persistente.
 
 ### Optimización de capas
 
@@ -129,19 +120,10 @@ docker push sssalma/simple-app-gsx:v1
 
 ### Verificación desde Docker Hub
 
-Para comprobar que cualquier persona puede descargar y ejecutar la imagen:
-
 ```bash
-# Eliminar imagen local
-docker rmi sssalma/simple-app-gsx:v1
-
-# Descargar desde Docker Hub
-docker pull sssalma/simple-app-gsx:v1
-docker run -p 3000:3000 sssalma/simple-app-gsx:v1
-
-# Resultado esperado
-curl localhost:3000
-# Hello from container!
+docker pull sssalma/simple-app-gsx:v1 && docker run -p 3000:3000 sssalma/simple-app-gsx:v1
+curl localhost:3000/visits
+# Visitas: 1
 ```
 
 ---

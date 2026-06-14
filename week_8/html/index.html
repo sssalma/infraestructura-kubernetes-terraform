@@ -1,1 +1,5 @@
-<h1>Bienvenido a GreenDevCorp - Practica 2</h1>
+<h1>GreenDevCorp</h1>
+<p id="v">Cargando...</p>
+<script>
+fetch('/visits').then(r => r.text()).then(t => document.getElementById('v').textContent = t)
+</script>
