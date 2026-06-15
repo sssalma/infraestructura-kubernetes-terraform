@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: simple-app
-          image: sssalma/simple-app-gsx:v1
+          image: nafaaissa/simple-app:v1
           ports:
             - containerPort: 3000
           envFrom:

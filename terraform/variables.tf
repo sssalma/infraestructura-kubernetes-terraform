@@ -31,7 +31,7 @@ variable "app_replicas" {
 variable "dockerhub_user" {
   description = "Usuario de Docker Hub donde están las imágenes"
   type        = string
-  default     = "sssalma"
+  default     = "nafaaissa"
 }
 
 variable "image_tag" {

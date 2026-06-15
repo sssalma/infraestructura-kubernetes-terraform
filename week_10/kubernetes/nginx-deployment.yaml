@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: sssalma/nginx-gsx:v1
+          image: nafaaissa/nginx-gsx:v1
           ports:
             - containerPort: 80
           resources:
