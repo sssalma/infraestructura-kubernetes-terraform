@@ -84,7 +84,7 @@ resource "kubernetes_network_policy" "allow_simple_app" {
       }
     }
 
-    policy_types = ["Ingress"]
+    policy_types = ["Ingress", "Egress"]
 
     ingress {
       from {
@@ -95,13 +95,74 @@ resource "kubernetes_network_policy" "allow_simple_app" {
           }
         }
       }
-
       ports {
         port     = "3000"
+        protocol = "TCP"
+      }
+    }
+
+    egress {
+      to {
+        pod_selector {
+          match_labels = {
+            app = "redis"
+          }
+        }
+      }
+      ports {
+        port     = "6379"
+        protocol = "TCP"
+      }
+    }
+
+    egress {
+      to {
+        namespace_selector {}
+      }
+      ports {
+        port     = "53"
+        protocol = "UDP"
+      }
+      ports {
+        port     = "53"
         protocol = "TCP"
       }
     }
   }
 
   depends_on = [kubernetes_deployment.simple_app, kubernetes_deployment.nginx]
+}
+
+# NetworkPolicy: redis només rep de simple-app
+resource "kubernetes_network_policy" "allow_redis" {
+  metadata {
+    name = "allow-redis"
+  }
+
+  spec {
+    pod_selector {
+      match_labels = {
+        app = "redis"
+      }
+    }
+
+    policy_types = ["Ingress"]
+
+    ingress {
+      from {
+        namespace_selector {}
+        pod_selector {
+          match_labels = {
+            app = "simple-app"
+          }
+        }
+      }
+      ports {
+        port     = "6379"
+        protocol = "TCP"
+      }
+    }
+  }
+
+  depends_on = [kubernetes_deployment.redis, kubernetes_deployment.simple_app]
 }

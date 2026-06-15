@@ -155,6 +155,14 @@ resource "kubernetes_deployment" "simple_app" {
               name = kubernetes_config_map.app_config.metadata[0].name
             }
           }
+          env {
+            name  = "REDIS_HOST"
+            value = "redis"
+          }
+          env {
+            name  = "REDIS_PORT"
+            value = "6379"
+          }
 
           resources {
             requests = {
@@ -206,6 +214,77 @@ resource "kubernetes_service" "simple_app" {
     port {
       port        = 3000
       target_port = 3000
+    }
+  }
+}
+
+# Deployment de redis (BD per al comptador de visites)
+resource "kubernetes_deployment" "redis" {
+  metadata {
+    name = "redis"
+    labels = {
+      app  = "redis"
+      week = "11"
+    }
+  }
+
+  spec {
+    replicas = 1
+
+    selector {
+      match_labels = {
+        app = "redis"
+      }
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = "redis"
+        }
+      }
+
+      spec {
+        container {
+          name  = "redis"
+          image = "redis:7-alpine"
+
+          port {
+            container_port = 6379
+          }
+
+          resources {
+            requests = {
+              memory = "64Mi"
+              cpu    = "100m"
+            }
+            limits = {
+              memory = "128Mi"
+              cpu    = "250m"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# Service de redis (ClusterIP - només accessible dins del cluster)
+resource "kubernetes_service" "redis" {
+  metadata {
+    name = "redis"
+  }
+
+  spec {
+    selector = {
+      app = "redis"
+    }
+
+    type = "ClusterIP"
+
+    port {
+      port        = 6379
+      target_port = 6379
     }
   }
 }
