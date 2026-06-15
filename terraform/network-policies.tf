@@ -44,7 +44,7 @@ resource "kubernetes_network_policy" "allow_nginx" {
           }
         }
       }
-    
+
 
       ports {
         port     = "3000"
@@ -52,18 +52,18 @@ resource "kubernetes_network_policy" "allow_nginx" {
       }
     }
     egress {
-    to {
-      namespace_selector {}
+      to {
+        namespace_selector {}
+      }
+      ports {
+        port     = "53"
+        protocol = "UDP"
+      }
+      ports {
+        port     = "53"
+        protocol = "TCP"
+      }
     }
-    ports {
-      port     = "53"
-      protocol = "UDP"
-    }
-    ports {
-      port     = "53"
-      protocol = "TCP"
-    }
-  }
   }
 
   depends_on = [kubernetes_deployment.nginx, kubernetes_deployment.simple_app]
