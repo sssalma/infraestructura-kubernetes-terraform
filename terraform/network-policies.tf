@@ -44,12 +44,26 @@ resource "kubernetes_network_policy" "allow_nginx" {
           }
         }
       }
+    
 
       ports {
         port     = "3000"
         protocol = "TCP"
       }
     }
+    egress {
+    to {
+      namespace_selector {}
+    }
+    ports {
+      port     = "53"
+      protocol = "UDP"
+    }
+    ports {
+      port     = "53"
+      protocol = "TCP"
+    }
+  }
   }
 
   depends_on = [kubernetes_deployment.nginx, kubernetes_deployment.simple_app]
@@ -74,6 +88,7 @@ resource "kubernetes_network_policy" "allow_simple_app" {
 
     ingress {
       from {
+        namespace_selector {}
         pod_selector {
           match_labels = {
             app = "nginx"
