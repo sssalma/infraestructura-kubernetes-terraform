@@ -1,113 +1,90 @@
-# GSX Práctica 2: GreenDevCorp Infrastructure
+# Infraestructura contenerizada: Docker, Kubernetes y Terraform
 
-Infraestructura de GreenDevCorp usando Docker, Kubernetes y Terraform.
+Infraestructura completa de una aplicación web para *GreenDevCorp*, construida de forma
+incremental a lo largo del curso: de contenedores sueltos a un clúster de Kubernetes
+declarado íntegramente como **infraestructura como código** con Terraform, con políticas
+de red restrictivas y CI automatizada.
 
----
-## ⚠️ 
-**Se implementa:**
--  Docker: 2 imágenes (nginx, simple-app)
--  Kubernetes: 2 pods, 2 services, 3 network policies
--  **Terraform: IaC completo que despliega todo** ← Week 11+13
--  Networking & Security: NetworkPolicies activas
+> Práctica 2 de *Gestió de Sistemes i Xarxes* — Grau en Enginyeria Informàtica, URV.
+> Trabajo en pareja: Nawfal Aissaoui y Salma Jadiani.
 
-**No se implementa pero se documenta CIDR Plan:**
-- 📄 CIDR Plan (múltiples subnets) - Propuesta
+## Arquitectura
 
----
-
-## Architecture
-nginx Pod (1/1 Running) 
-─→ NodePort 30080
-simple-app Pod (1/1 Running)
-
-Services:
-
-nginx: NodePort (acceso externo)
-simple-app: ClusterIP (acceso interno)
-
-SecurityNetwork Policies:
-
-deny-all (base)
-allow-nginx (puede hablar con app)
-allow-simple-app (puede recibir de nginx)
-
-ConfigMap: app-config (variables de entorno)
-
----
-
-## Getting Started
-### Prerequisites
-
-```bash
-docker --version          #  Needed
-minikube version          #  Needed
-kubectl version           #  Needed
-terraform --version       #  Used for IaC
+```text
+            ── NodePort 30080 ──►  nginx Pod  ──►  simple-app Pod
+                                  (reverse proxy)    (Flask + Redis)
+                                        │                  │
+                                   ConfigMap app-config ────┘
 ```
 
-### Deploy (usando Terraform = IaC)
+| Componente | Tipo de Service | Acceso |
+|---|---|---|
+| `nginx` | NodePort | Externo, puerto 30080 |
+| `simple-app` | ClusterIP | Solo interno |
+
+La app únicamente es alcanzable a través de nginx: no se expone al exterior.
+
+## Seguridad de red
+
+Tres `NetworkPolicy` que implementan un modelo de **denegación por defecto**:
+
+1. `deny-all` — se bloquea todo el tráfico del namespace.
+2. `allow-nginx` — se permite explícitamente que nginx hable con la app.
+3. `allow-simple-app` — se permite explícitamente que la app reciba tráfico de nginx.
+
+Así, cualquier comunicación no contemplada queda cortada, en lugar de depender de
+recordar bloquear cada caso.
+
+## Evolución por semanas
+
+| Semana | Contenido |
+|---|---|
+| `week_8/` | Contenedores: imagen de nginx como reverse proxy e imagen de la app Flask |
+| `week_9/` | Orquestación local con Docker Compose |
+| `week_10/` | Migración a Kubernetes: Deployments, Services y ConfigMap en YAML |
+| `week_12/` | NetworkPolicies, plan de CIDR, gestión de identidades y análisis de seguridad |
+| `week_13/` | Retos finales: diagnóstico, documentación de componentes, runbook operativo y troubleshooting |
+| `terraform/` | IaC: todo lo anterior declarado en Terraform (semanas 11 y 13) |
+
+## Infraestructura como código
+
+`terraform/` despliega el conjunto completo sobre un clúster (Minikube) usando el
+provider `hashicorp/kubernetes`: el ConfigMap, ambos Deployments, ambos Services y las
+NetworkPolicies. Todo lo parametrizable está en `variables.tf` — contexto de kubectl,
+usuario de Docker Hub, tag de imagen, número de réplicas, entorno y puerto — de modo que
+el mismo código sirve para distintos entornos sin editarlo.
 
 ```bash
-cd terraform/
+cd terraform
+terraform init
+terraform plan
 terraform apply
-# Esto despliega TODO automáticamente
 ```
 
-### What Terraform Deploys
- kubernetes_config_map.app_config
- kubernetes_deployment.nginx
- kubernetes_deployment.simple_app
- kubernetes_service.nginx (NodePort)
- kubernetes_service.simple_app (ClusterIP)
- kubernetes_network_policy.deny_all
- kubernetes_network_policy.allow_nginx
- kubernetes_network_policy.allow_simple_app
+El estado de Terraform (`*.tfstate`) está excluido del repositorio.
 
----
+## CI
 
-## Project Structure
-gsx_P2/
-├── week_8/                 # Docker
-├── week_9/                 # Docker Compose
-├── week_10/                # Kubernetes YAML (no usado en deploy)
-├── week_11/                # CI/CD
-├── week_12/                # Network & Security (mostly conceptual)
-│
-├── week_13/                #  Testing + Full Documentation
-│   └── challenge_c/        # ← Complete docs here
-│   └── challenge_b/        # ← Integration Test
-├── terraform/              
-│   ├── main.tf             # Deployments, services
-│   ├── network-policies.tf # NetworkPolicies
-│   ├── variables.tf
-│   ├── outputs.tf
-│   └── terraform.tfstate
-│
-└── README.md (this file)
+`.github/workflows/ci.yml` construye y publica en Docker Hub las dos imágenes en cada
+push a `main`, etiquetándolas con `latest` y con el SHA del commit, lo que permite
+desplegar una versión exacta y volver atrás. Las credenciales se leen de los secrets del
+repositorio (`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`).
 
-## How It Works
+## Documentación
 
-1. **Terraform reads state** from `terraform/`
-2. **Terraform connects to Kubernetes** (via kubectl config)
-3. **Terraform creates resources** (8 total)
-4. **Kubernetes runs everything** (IaC → actual infrastructure)
+- `week_12/CIDR-plan.md` — propuesta de segmentación en subredes (documentada, no desplegada)
+- `week_12/security-analysis.md` — análisis de seguridad
+- `week_12/identity-management.md` — gestión de identidades y accesos
+- `week_13/ChallengeC/OperationalRunBook.md` — runbook de operación
+- `week_13/ChallengeC/TroubleShooting.md` — guía de diagnóstico
+- `Memoria.pdf` — memoria de la práctica
 
-```bash
-terraform apply
-  ↓
-Creates 8 Kubernetes resources
-  ↓
-Pods start, services expose them
-  ↓
-NetworkPolicies enforce security
-  ↓
-GreenDevCorp accessible via minikube service nginx
-```
-## Documentation
+## Alcance
 
-See [week_13/challenge_c/](week_13/challenge_c/) for:
-- Architecture diagram
-- Component documentation
-- Operational runbook
-- Troubleshooting guide
----
+Implementado y desplegado: Docker (2 imágenes), Kubernetes (2 Deployments, 2 Services,
+3 NetworkPolicies, 1 ConfigMap), Terraform (IaC completa) y CI en GitHub Actions.
+Documentado pero no desplegado: el plan de CIDR con múltiples subredes.
+
+## Stack
+
+Docker · Docker Compose · Kubernetes · Minikube · Terraform · GitHub Actions · nginx · Flask · Redis
